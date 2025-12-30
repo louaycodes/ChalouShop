@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vitrine-postgres
+    environment:
+      POSTGRES_DB: vitrine_db
+      POSTGRES_USER: vitrine_user
+      POSTGRES_PASSWORD: vitrine_password
+      TZ: Africa/Tunis
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../backend
+    container_name: vitrine-backend
+    environment:
+      PORT: 3001
+      ADMIN_KEY: change-me-very-strong
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: vitrine_db
+      DB_USER: vitrine_user
+      DB_PASSWORD: vitrine_password
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
